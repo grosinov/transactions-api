@@ -26,12 +26,14 @@ func (r *TransactionsRepositoryImpl) GetTransactions(userId uint64, from, to *ti
 	var transactions []models.Transaction
 	query := r.db.Model(&models.Transaction{})
 
+	query = query.Where("user_id = ?", userId)
+
 	if from != nil && !from.IsZero() {
-		query = query.Where("date >= ?", *from)
+		query = query.Where("datetime >= ?", *from)
 	}
 
 	if to != nil && !to.IsZero() {
-		query = query.Where("date <= ?", *to)
+		query = query.Where("datetime <= ?", *to)
 	}
 
 	if err := query.Find(&transactions).Error; err != nil {
