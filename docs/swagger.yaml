@@ -1,0 +1,97 @@
+basePath: /api/v1
+definitions:
+  dtos.Balance:
+    properties:
+      balance:
+        type: number
+      total_credit:
+        type: integer
+      total_debit:
+        type: integer
+    type: object
+  dtos.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  models.Transaction:
+    properties:
+      amount:
+        type: number
+      datetime:
+        type: string
+      id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API to handle transactions
+  title: Transaction API
+  version: "1.0"
+paths:
+  /migrate:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Migrate transactions from CSV file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Transaction'
+            type: array
+        "400":
+          description: Failed to parse CSV
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Failed to save transactions
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      summary: Migrate transactions
+      tags:
+      - example
+  /users/{user_id}/balance:
+    get:
+      consumes:
+      - application/json
+      description: Get user's balance
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - description: Start date (yyyy-mm-ddThh:mm:ssZ)
+        in: query
+        name: from
+        type: string
+      - description: End date (yyyy-mm-ddThh:mm:ssZ)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.Balance'
+        "400":
+          description: Invalid to date
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Failed to get balance
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      summary: Get Balance
+      tags:
+      - example
+swagger: "2.0"
