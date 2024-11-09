@@ -8,6 +8,11 @@ import (
 	"log"
 )
 
+// @title Transaction API
+// @version 1.0
+// @description API to handle transactions
+// @host localhost:8080
+// @BasePath /api/v1
 func main() {
 	repository := repositories.NewTransactionsRepository(config.ConnectDatabase())
 	service := services.NewTransactionsServiceImpl(repository)
