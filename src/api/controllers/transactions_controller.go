@@ -42,7 +42,7 @@ func (c *TransactionsController) MigrateTransactions(ctx *gin.Context) {
 	transactions, err := parseTransactions(csvReader)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, &dtos.ErrorResponse{
-			Message: err.Error(),
+			Message: fmt.Sprintf("Error in CSV file: %s", err.Error()),
 		})
 		return
 	}
