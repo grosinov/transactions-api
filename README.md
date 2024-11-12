@@ -59,3 +59,7 @@ docker compose up -d
 ## Relevant information
 
 - Mocks where generated with [gomock](https://github.com/golang/mock).
+
+## Challenge assumptions
+
+- I assumed that transaction ids are unique, since the exercise example showed repeated ids.
