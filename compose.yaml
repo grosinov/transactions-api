@@ -3,13 +3,15 @@ version: '3.8'
 services:
   db:
     image: postgres
-    container_name: my_postgres_db
+    container_name: postgres_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: mydatabase
     ports:
       - "5432:5432"
+    healthcheck:
+      test: "exit 0"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -17,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: my_go_app
+    container_name: transactions-api
     ports:
       - "8080:8080"
     environment:
@@ -27,7 +29,8 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: mydatabase
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
