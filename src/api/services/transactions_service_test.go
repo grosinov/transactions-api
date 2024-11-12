@@ -55,6 +55,16 @@ func TestTransactionsServiceImpl_GetTransaction(t *testing.T) {
 		assert.Equal(t, mockTransactionList, transactions)
 	})
 
+	t.Run("no transactions returned means user not found", func(t *testing.T) {
+		transactionsRepositoryMock.EXPECT().GetTransactions(uint64(1), nil, nil).Return(&[]models.Transaction{}, nil)
+
+		_, err := transactionsServiceImpl.GetTransactions(uint64(1), nil, nil)
+
+		assert.NotNil(t, err)
+
+		assert.Equal(t, err.Error(), "user not found")
+	})
+
 	t.Run("failure", func(t *testing.T) {
 		transactionsRepositoryMock.EXPECT().GetTransactions(uint64(1), nil, nil).Return(nil, fmt.Errorf("error"))
 

@@ -36,6 +36,7 @@ func (r *TransactionsRepositoryImpl) GetTransactions(userId uint64, from, to *ti
 		query = query.Where("datetime <= ?", *to)
 	}
 
+	r.db.Begin()
 	if err := query.Find(&transactions).Error; err != nil {
 		return nil, err
 	}

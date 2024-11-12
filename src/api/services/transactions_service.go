@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"github.com/grosinov/transactions-api/src/api/dtos"
 	"github.com/grosinov/transactions-api/src/api/models"
 	"github.com/grosinov/transactions-api/src/api/repositories"
@@ -53,6 +54,11 @@ func (s *TransactionsServiceImpl) GetTransactions(userId uint64, from, to *time.
 	if err != nil {
 		return nil, err
 	}
+
+	if len(*transactions) == 0 {
+		return nil, fmt.Errorf("user not found")
+	}
+
 	return transactions, nil
 }
 

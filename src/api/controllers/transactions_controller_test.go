@@ -118,11 +118,14 @@ func TestTransactionsController_GetBalance(t *testing.T) {
 
 		gin.SetMode(gin.TestMode)
 
-		req := httptest.NewRequest(http.MethodGet, "/users/1/balance", nil)
-
 		recorder := httptest.NewRecorder()
 		ctx, _ := gin.CreateTestContext(recorder)
-		ctx.Request = req
+		ctx.Params = []gin.Param{
+			{
+				Key:   "user_id",
+				Value: "1",
+			},
+		}
 
 		transactionsControllerImpl.GetBalance(ctx)
 
@@ -133,7 +136,134 @@ func TestTransactionsController_GetBalance(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Equal(t, 10.0, balance.Balance)
-		assert.Equal(t, 1, balance.TotalCredit)
-		assert.Equal(t, 0, balance.TotalDebit)
+		assert.Equal(t, uint(1), balance.TotalCredit)
+		assert.Equal(t, uint(0), balance.TotalDebit)
+	})
+
+	t.Run("invalid user failure", func(t *testing.T) {
+		gin.SetMode(gin.TestMode)
+
+		recorder := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(recorder)
+		ctx.Params = []gin.Param{
+			{
+				Key:   "user_id",
+				Value: "asdf",
+			},
+		}
+
+		transactionsControllerImpl.GetBalance(ctx)
+
+		assert.Equal(t, http.StatusBadRequest, recorder.Code)
+
+		var errorResponse dtos.ErrorResponse
+		err := json.Unmarshal(recorder.Body.Bytes(), &errorResponse)
+		assert.Nil(t, err)
+
+		assert.Equal(t, dtos.ErrorResponse{Message: "Invalid user id asdf"}, errorResponse)
+	})
+
+	t.Run("invalid from date failure", func(t *testing.T) {
+		gin.SetMode(gin.TestMode)
+
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/users/1/balance?from=asdf", nil)
+		recorder := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(recorder)
+		ctx.Params = []gin.Param{
+			{
+				Key:   "user_id",
+				Value: "1",
+			},
+		}
+		ctx.Request = req
+
+		transactionsControllerImpl.GetBalance(ctx)
+
+		assert.Equal(t, http.StatusBadRequest, recorder.Code)
+
+		var errorResponse dtos.ErrorResponse
+		err := json.Unmarshal(recorder.Body.Bytes(), &errorResponse)
+		assert.Nil(t, err)
+
+		assert.Equal(t, dtos.ErrorResponse{Message: "Invalid from date, format must be YYYY-MM-DDThh:mm:ssZ"}, errorResponse)
+	})
+
+	t.Run("invalid to date failure", func(t *testing.T) {
+		gin.SetMode(gin.TestMode)
+
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/users/1/balance?to=asdf", nil)
+		recorder := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(recorder)
+		ctx.Params = []gin.Param{
+			{
+				Key:   "user_id",
+				Value: "1",
+			},
+		}
+		ctx.Request = req
+
+		transactionsControllerImpl.GetBalance(ctx)
+
+		assert.Equal(t, http.StatusBadRequest, recorder.Code)
+
+		var errorResponse dtos.ErrorResponse
+		err := json.Unmarshal(recorder.Body.Bytes(), &errorResponse)
+		assert.Nil(t, err)
+
+		assert.Equal(t, dtos.ErrorResponse{Message: "Invalid to date, format must be YYYY-MM-DDThh:mm:ssZ"}, errorResponse)
+	})
+
+	t.Run("user not found failure", func(t *testing.T) {
+		transactionsServiceMock.EXPECT().GetBalance(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("user not found"))
+
+		gin.SetMode(gin.TestMode)
+
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/users/2/balance", nil)
+		recorder := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(recorder)
+		ctx.Params = []gin.Param{
+			{
+				Key:   "user_id",
+				Value: "2",
+			},
+		}
+		ctx.Request = req
+
+		transactionsControllerImpl.GetBalance(ctx)
+
+		assert.Equal(t, http.StatusBadRequest, recorder.Code)
+
+		var errorResponse dtos.ErrorResponse
+		err := json.Unmarshal(recorder.Body.Bytes(), &errorResponse)
+		assert.Nil(t, err)
+
+		assert.Equal(t, dtos.ErrorResponse{Message: "User 2 not found"}, errorResponse)
+	})
+
+	t.Run("service get balance failure", func(t *testing.T) {
+		transactionsServiceMock.EXPECT().GetBalance(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("error"))
+
+		gin.SetMode(gin.TestMode)
+
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/users/1/balance", nil)
+		recorder := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(recorder)
+		ctx.Params = []gin.Param{
+			{
+				Key:   "user_id",
+				Value: "1",
+			},
+		}
+		ctx.Request = req
+
+		transactionsControllerImpl.GetBalance(ctx)
+
+		assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+
+		var errorResponse dtos.ErrorResponse
+		err := json.Unmarshal(recorder.Body.Bytes(), &errorResponse)
+		assert.Nil(t, err)
+
+		assert.Equal(t, dtos.ErrorResponse{Message: "Failed to get balance: error"}, errorResponse)
 	})
 }
