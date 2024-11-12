@@ -55,3 +55,7 @@ docker compose up -d
 - **Query Parameters** (optional):
   - from (string): The start date for filtering transactions. Format: yyyy-MM-ddThh:mm:ssZ.
   - to (string): The end date for filtering transactions. Format: yyyy-MM-ddThh:mm:ssZ.
+
+## Relevant information
+
+- Mocks where generated with [gomock](https://github.com/golang/mock).
