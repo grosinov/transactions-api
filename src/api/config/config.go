@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	DateTimeLayout = "2006-01-02T15:04:05MST"
+	DateTimeLayout = "2006-01-02T15:04:05Z"
 )
 
 func ConnectDatabase() *gorm.DB {

@@ -42,7 +42,7 @@ func (c *TransactionsController) MigrateTransactions(ctx *gin.Context) {
 	transactions, err := parseTransactions(csvReader)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, &dtos.ErrorResponse{
-			Message: err.Error(),
+			Message: fmt.Sprintf("Error in CSV file: %s", err.Error()),
 		})
 		return
 	}
@@ -94,13 +94,19 @@ func (c *TransactionsController) GetBalance(ctx *gin.Context) {
 	toDate, err := time.Parse(config.DateTimeLayout, ctx.DefaultQuery("to", time.Time{}.Format(config.DateTimeLayout)))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, &dtos.ErrorResponse{
-			Message: fmt.Sprintf("Invalid from date, format must be YYYY-MM-DDThh:mm:ssZ"),
+			Message: fmt.Sprintf("Invalid to date, format must be YYYY-MM-DDThh:mm:ssZ"),
 		})
 		return
 	}
 
 	balance, err := c.service.GetBalance(userId, &fromDate, &toDate)
 	if err != nil {
+		if err.Error() == "user not found" {
+			ctx.JSON(http.StatusBadRequest, &dtos.ErrorResponse{
+				Message: fmt.Sprintf("User %d not found", userId),
+			})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, &dtos.ErrorResponse{
 			Message: fmt.Sprintf("Failed to get balance: %s", err.Error()),
 		})
@@ -121,7 +127,7 @@ func parseTransactions(csvReader *csv.Reader) (*[]models.Transaction, error) {
 		id, _ := strconv.ParseUint(row[0], 10, 64)
 		userId, _ := strconv.ParseUint(row[1], 10, 64)
 		amount, _ := strconv.ParseFloat(row[2], 64)
-		dateTime, _ := time.Parse(config.DateTimeLayout, row[1])
+		dateTime, _ := time.Parse(config.DateTimeLayout, row[3])
 
 		transaction := models.Transaction{
 			Id:       id,
